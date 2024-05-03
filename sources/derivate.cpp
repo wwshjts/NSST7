@@ -3,10 +3,10 @@
 Var::Var(std::string var) : var_ { var } {}
 
 ScopedPointer<Expression> Var::derivate(const std::string& var) {
-    if (var == var_) {
+    if (var != var_) {
         return ScopedPointer<Expression> { new Val { 0 } };
     }
-    return ScopedPointer<Expression> { new Var { var_ } };
+    return ScopedPointer<Expression> { new Val { 1 } };
 }
 
 ScopedPointer<Expression> Exp::derivate(const std::string &var) {
@@ -18,7 +18,7 @@ Expression* Exp::copy() const {
 }
 
 Exp::operator std::string() const {
-    return " e ^ ( " + static_cast<std::string>(*expr_) + " ) " + " ";
+    return " e ^ ( " + static_cast<std::string>(*expr_) + " ) ";
 }
 
 Var::operator std::string() const {
@@ -32,7 +32,10 @@ Expression* Var::copy() const {
 Val::Val(double val) : val_ { val } {}
 
 Val::operator std::string() const {
-    return " " + std::to_string(val_) + " ";
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(DOT) << val_;
+    std::string format_str = stream.str();
+    return " " + format_str + " ";
 }
 
 Expression* Val::copy() const {
@@ -49,7 +52,7 @@ Binary::Binary(ScopedPointer<Expression> left, ScopedPointer<Expression> right) 
 Plus::Plus(ScopedPointer<Expression> left, ScopedPointer<Expression> right) : Binary(left, right) {}
 
 Plus::operator std::string() const {
-    return " (" + static_cast<std::string>(*left_) + "+" + static_cast<std::string>(*right_) + ") ";
+    return " (" + static_cast<std::string>(*left_) + " + " + static_cast<std::string>(*right_) + ") ";
 }
 
 Expression* Plus::copy() const {
@@ -81,7 +84,7 @@ Expression* Mult::copy() const {
 }
 
 Mult::operator std::string() const {
-    return  "(" + static_cast<std::string>(*left_) + "*" + static_cast<std::string>(*right_) + ")";
+    return  " ( " + static_cast<std::string>(*left_) + " * " + static_cast<std::string>(*right_) + " ) ";
 }
 
 
@@ -102,7 +105,7 @@ ScopedPointer<Expression> Div::derivate(const std::string& var) {
 }
 
 Div::operator std::string() const {
-    return "(" + static_cast<std::string>(*left_) + "/" + static_cast<std::string>(*right_) + ")";
+    return " ( " + static_cast<std::string>(*left_) + " / " + static_cast<std::string>(*right_) + " ) ";
 }
 
 Expression* Div::copy() const {

@@ -1,13 +1,17 @@
 #include <string>
+#include <sstream>
+#include <iomanip>
 #include "ScopedPointer.hpp"
+#define DOT 2
 
 class Expression {
 
 public: 
     virtual ScopedPointer<Expression> derivate(const std::string& var) = 0;
-    virtual ~Expression() {};
-    virtual operator std::string() const = 0;
     virtual Expression* copy() const = 0;
+
+    virtual operator std::string() const = 0;
+    virtual ~Expression() {};
 };
 
 class Var : public Expression {
@@ -15,10 +19,11 @@ class Var : public Expression {
 
 public:
     Var(std::string var);
-    ~Var() = default;
     ScopedPointer<Expression> derivate(const std::string& var);
-    operator std::string() const;
     Expression* copy() const;
+
+    operator std::string() const;
+    ~Var() = default;
 };
 
 class Val : public Expression {
@@ -26,10 +31,11 @@ class Val : public Expression {
 
 public:
     Val(double val);    
-    ~Val() = default;
     ScopedPointer<Expression> derivate(const std::string& var);
-    operator std::string() const; 
     Expression* copy() const;
+
+    operator std::string() const; 
+    ~Val() = default;
 };
 
 class Binary : public Expression {
@@ -54,42 +60,45 @@ class Exp : public Unary {
 public:
     Exp(ScopedPointer<Expression> expr) : Unary { expr } {};
     ScopedPointer<Expression> derivate(const std::string& var);
-    operator std::string() const; 
     Expression* copy() const;
+
+    operator std::string() const; 
 };
 
 class Plus : public Binary {
 public:
     Plus(ScopedPointer<Expression> left, ScopedPointer<Expression> right);
     ScopedPointer<Expression> derivate(const std::string& var);
-    operator std::string() const; 
     Expression* copy() const;
+
+    operator std::string() const; 
 };
 
 
 class Sub : public Binary {
 public:
     Sub(ScopedPointer<Expression> l, ScopedPointer<Expression> r);
-    
     ScopedPointer<Expression> derivate(const std::string& var);
-    operator std::string() const; 
     Expression* copy() const;
+
+    operator std::string() const; 
 };
 
 class Mult : public Binary {
 public:
     Mult(ScopedPointer<Expression> l, ScopedPointer<Expression> r);
     ScopedPointer<Expression> derivate(const std::string& var);
-    operator std::string() const; 
     Expression* copy() const;
+
+    operator std::string() const; 
 };
 
 class Div : public Binary {
 
 public:
     Div(ScopedPointer<Expression> l, ScopedPointer<Expression> r);
-    
     ScopedPointer<Expression> derivate(const std::string& var);
-    operator std::string() const; 
     Expression* copy() const;
+
+    operator std::string() const; 
 };
