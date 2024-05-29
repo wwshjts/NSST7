@@ -1,26 +1,27 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include "ScopedPointer.hpp"
+#include <memory>
 #define DOT 2
 
 class Expression {
 
 public: 
-    virtual ScopedPointer<Expression> derivate(const std::string& var) = 0;
-    virtual Expression* copy() const = 0;
+    virtual std::shared_ptr<Expression> derivate(const std::string& var) = 0;
 
     virtual operator std::string() const = 0;
-    virtual ~Expression() {};
 };
 
 class Var : public Expression {
     std::string var_;
 
 public:
-    Var(std::string var);
-    ScopedPointer<Expression> derivate(const std::string& var);
-    Expression* copy() const;
+    Var(const std::string& var);
+    static std::shared_ptr<Var> make_var(const std::string& var) {
+        return std::shared_ptr<Var> ( new Var { var } );
+    }
+
+    std::shared_ptr<Expression> derivate(const std::string& var);
 
     operator std::string() const;
     ~Var() = default;
@@ -31,8 +32,10 @@ class Val : public Expression {
 
 public:
     Val(double val);    
-    ScopedPointer<Expression> derivate(const std::string& var);
-    Expression* copy() const;
+    static std::shared_ptr<Expression> make_val(double val) {
+        return std::shared_ptr<Val> ( new Val { val } );
+    }
+    std::shared_ptr<Expression> derivate(const std::string& var);
 
     operator std::string() const; 
     ~Val() = default;
@@ -40,36 +43,41 @@ public:
 
 class Binary : public Expression {
 protected:
-    ScopedPointer<Expression> left_;
-    ScopedPointer<Expression> right_;
+    std::shared_ptr<Expression> left_;
+    std::shared_ptr<Expression> right_;
 
 public:
-    Binary(ScopedPointer<Expression> left, ScopedPointer<Expression> right);
+    Binary(std::shared_ptr<Expression> left, std::shared_ptr<Expression> right);
     ~Binary() = default;
 };
 
 class Unary : public Expression {
 protected:
-    ScopedPointer<Expression> expr_;
+    std::shared_ptr<Expression> expr_;
 public:
-    Unary(ScopedPointer<Expression> expr);
+    Unary(std::shared_ptr<Expression> expr);
     ~Unary() = default;
 };
 
-class Exp : public Unary {
+class Exp : public Unary, public std::enable_shared_from_this<Expression>{
 public:
-    Exp(ScopedPointer<Expression> expr) : Unary { expr } {};
-    ScopedPointer<Expression> derivate(const std::string& var);
-    Expression* copy() const;
+    Exp(std::shared_ptr<Expression> expr) : Unary { expr } {};
+    std::shared_ptr<Expression> derivate(const std::string& var);
+
+    static std::shared_ptr<Expression> make_exp(std::shared_ptr<Expression> arg) {
+        return std::shared_ptr<Expression> { new Exp { arg } };
+    }
 
     operator std::string() const; 
 };
 
 class Plus : public Binary {
 public:
-    Plus(ScopedPointer<Expression> left, ScopedPointer<Expression> right);
-    ScopedPointer<Expression> derivate(const std::string& var);
-    Expression* copy() const;
+    Plus(std::shared_ptr<Expression> left, std::shared_ptr<Expression> right);
+    static std::shared_ptr<Expression> make_plus(std::shared_ptr<Expression> left, std::shared_ptr<Expression> right) {
+        return std::shared_ptr<Expression> { new Plus { left, right } };
+    }
+    std::shared_ptr<Expression> derivate(const std::string& var);
 
     operator std::string() const; 
 };
@@ -77,18 +85,22 @@ public:
 
 class Sub : public Binary {
 public:
-    Sub(ScopedPointer<Expression> l, ScopedPointer<Expression> r);
-    ScopedPointer<Expression> derivate(const std::string& var);
-    Expression* copy() const;
+    Sub(std::shared_ptr<Expression> l, std::shared_ptr<Expression> r);
+    static std::shared_ptr<Expression> make_sub(std::shared_ptr<Expression> left, std::shared_ptr<Expression> right) {
+        return std::shared_ptr<Expression> { new Sub { left, right } };
+    }
+    std::shared_ptr<Expression> derivate(const std::string& var);
 
     operator std::string() const; 
 };
 
 class Mult : public Binary {
 public:
-    Mult(ScopedPointer<Expression> l, ScopedPointer<Expression> r);
-    ScopedPointer<Expression> derivate(const std::string& var);
-    Expression* copy() const;
+    Mult(std::shared_ptr<Expression> l, std::shared_ptr<Expression> r);
+    static std::shared_ptr<Expression> make_mult(std::shared_ptr<Expression> left, std::shared_ptr<Expression> right) {
+        return std::shared_ptr<Expression> { new Mult { left, right } };
+    }
+    std::shared_ptr<Expression> derivate(const std::string& var);
 
     operator std::string() const; 
 };
@@ -96,9 +108,12 @@ public:
 class Div : public Binary {
 
 public:
-    Div(ScopedPointer<Expression> l, ScopedPointer<Expression> r);
-    ScopedPointer<Expression> derivate(const std::string& var);
-    Expression* copy() const;
+    Div(std::shared_ptr<Expression> l, std::shared_ptr<Expression> r);
+    std::shared_ptr<Expression> derivate(const std::string& var);
 
+    static std::shared_ptr<Expression> make_div(std::shared_ptr<Expression> left, std::shared_ptr<Expression> right) {
+        return std::shared_ptr<Expression> { new Div { left, right } };
+    }
+     
     operator std::string() const; 
 };

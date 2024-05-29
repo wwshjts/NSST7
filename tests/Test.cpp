@@ -3,19 +3,18 @@
 #include "../sources/derivate.hpp"
 
 TEST(repr_test, var) {
-    ScopedPointer<Expression> e = ScopedPointer<Expression> { new Var { "x" } };
+    auto e = Var::make_var("x");
+
     EXPECT_EQ(" x ", static_cast<std::string>(*e));
 }
-
-TEST(DifferentiationTest, Val) {
-    ScopedPointer<Expression> e = ScopedPointer<Expression> { new Val { 42.0 } };
+TEST(repr_test, Val) {
+    auto e = Val::make_val(42.0);
     EXPECT_EQ(" 42.00 ", static_cast<std::string>(*e));
 }
-
 TEST(DifferentiationTest, Plus) {
-    ScopedPointer<Expression> a = ScopedPointer<Expression> { new Val { 42.0 } };
-    ScopedPointer<Expression> b = ScopedPointer<Expression> { new Var { "x" } };
-    ScopedPointer<Expression> plus = ScopedPointer<Expression> {new Plus {a, b} };
+    auto a = Val::make_val(42.0);
+    auto b = Var::make_var("x");
+    auto plus = Plus::make_plus(a, b);
     std::cout << "\n";
     std::cout << "expr:" << (std::string) *plus << std::endl; 
     std::cout << "dx (expr):" << (std::string) *plus->derivate("x") << std::endl; 
@@ -23,10 +22,19 @@ TEST(DifferentiationTest, Plus) {
     std::cout << "\n";
 }
 
+TEST(DifferentiationTest, simple_mult) {
+    auto mult = Mult::make_mult(Var::make_var("y"), Val::make_val(42.0));
+    std::cout << "\n";
+    std::cout << "expr: " << (std::string) *mult << std::endl; 
+    std::cout << "dx (expr): " << (std::string) *mult->derivate("x") << std::endl; 
+    std::cout << "dy (expr): " << (std::string) *mult->derivate("y") << std::endl; 
+    std::cout << "\n";
+}
+
 TEST(DifferentiationTest, Sub) {
-    ScopedPointer<Expression> a = ScopedPointer<Expression> { new Mult { new Var { " y " }, new Val { 42.0 } }};
-    ScopedPointer<Expression> b = ScopedPointer<Expression> { new Var { "x" } };
-    ScopedPointer<Expression> sub = ScopedPointer<Expression> {new Sub {a, b} };
+    auto a = Mult::make_mult(Var::make_var("y"), Val::make_val(42.0));
+    auto b = Var::make_var("x");
+    auto sub = Sub::make_sub(a, b);
 
     std::cout << "\n";
     std::cout << "expr: " << (std::string) *sub << std::endl; 
@@ -36,9 +44,9 @@ TEST(DifferentiationTest, Sub) {
 }
 
 TEST(DifferentiationTest, SimpleComposition) {
-    ScopedPointer<Expression> a = new Plus { new Var { "x" }, new Val { 42.0 }};
-    ScopedPointer<Expression> b = new Sub { new Val {24.0}, new Var { "y" } };
-    ScopedPointer<Expression> plus = new Plus {a->copy(), b->copy()};
+    auto a = Plus::make_plus(Var::make_var("x"), Val::make_val(42.0));
+    auto b = Sub::make_sub(Val::make_val(24.0), Var::make_var ("y"));
+    auto plus = Plus::make_plus(a, b);
     std::cout << "\n";
     std::cout << "expr: " << (std::string) *plus << std::endl; 
     std::cout << "dx (expr): " << (std::string) *plus->derivate("x") << std::endl; 
@@ -47,9 +55,9 @@ TEST(DifferentiationTest, SimpleComposition) {
 }
 
 TEST(DifferentiationTest, Mult) {
-    ScopedPointer<Expression> a = new Plus { new Var { "x" }, new Val { 42.0 }};
-    ScopedPointer<Expression> b = new Sub { new Val {24.0}, new Var { "y" } };
-    ScopedPointer<Expression> mult = new Mult {a->copy(), b->copy()};
+    auto a = Plus::make_plus(Var::make_var("x"), Val::make_val(42.0));
+    auto b = Sub::make_sub(Val::make_val(24.0), Var::make_var("y"));
+    auto mult = Mult::make_mult(a, b);
     std::cout << "\n";
     std::cout << "expr: " << (std::string) *mult << std::endl; 
     std::cout << "dx (expr): " << (std::string) *mult->derivate("x") << std::endl; 
@@ -58,9 +66,9 @@ TEST(DifferentiationTest, Mult) {
 }
 
 TEST(DifferentiationTest, Div) {
-    ScopedPointer<Expression> a = new Mult { new Var { "x" }, new Var { "x" }};
-    ScopedPointer<Expression> b = new Sub { new Val {24.0}, new Var { "y" } };
-    ScopedPointer<Expression> div = new Div {a, b};
+    auto a = Mult::make_mult(Var::make_var ( "x" ), Var::make_var ( "x" ));
+    auto b = Sub::make_sub ( Val::make_val (24.0), Var::make_var ( "y" ) );
+    auto div =  Div::make_div (a, b);
     std::cout << "\n";
     std::cout << "expr: " << (std::string) *div << std::endl; 
     std::cout << "dx (expr): " << (std::string) *div->derivate("x") << std::endl; 
@@ -69,8 +77,8 @@ TEST(DifferentiationTest, Div) {
 }
 
 TEST(DifferentiationTest, Exponent) {
-    ScopedPointer<Expression> a = new Mult { new Var { "x" }, new Var { "x" }};
-    ScopedPointer<Expression> exp = new Exp {a};
+    auto a = Mult::make_mult (Var::make_var("x"), Var::make_var ("x"));
+    auto exp = Exp::make_exp(a);
     std::cout << "\n";
     std::cout << "expr: " << (std::string) *exp << std::endl; 
     std::cout << "dx (expr): " << (std::string) *exp->derivate("x") << std::endl; 
